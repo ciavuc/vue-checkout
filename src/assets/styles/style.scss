@@ -1,0 +1,12 @@
+@import "./reset";
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100;300;500&family=Roboto:wght@300;400;500&display=swap");
+@import "./typography";
+body {
+    font-family: "Roboto", Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #2c3e50;
+    margin-top: 60px;
+    background-color: #dee5ea;
+    text-align: left;
+}
