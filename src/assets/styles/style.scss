@@ -11,3 +11,36 @@ body {
     background-color: #dee5ea;
     text-align: left;
 }
+
+.button {
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.25s ease;
+    margin: 10px 0;
+    display: inline-block;
+    &--small {
+        padding: 8px 10px;
+        font-size: 11px;
+        background-color: #dee5ea;
+        &:hover {
+            background-color: darken(#dee5ea, 10%);
+        }
+    }
+    &--primary {
+        background-color: rgb(64, 82, 243);
+        color: #fff;
+        padding: 15px 35px;
+        font-size: 15px;
+        -webkit-appearance: none;
+        outline: none;
+        border: none;
+        box-shadow: 0px 0px 26px #00000017;
+        font-family: 'Roboto';
+        font-weight: 500;
+        margin: 10px auto;
+        display: block;
+        &:hover{
+            background-color: darken(rgb(64, 82, 243), 10%);
+        }
+    }
+}

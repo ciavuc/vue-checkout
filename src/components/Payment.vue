@@ -2,7 +2,7 @@
   <div class="payment">
     <h2>Card Details</h2>
 
-    <Card :card="card" :provider="activeProvider" />
+    <Card :card="card" :provider="getCardType" />
 
     <form class="form">
       <div class="form__group">
@@ -23,22 +23,38 @@
           name="number"
           v-model="card.number"
           v-on:input="handleCardInput()"
-          placeholder="Joe Bloggs"
+          v-mask="generateCardNumberMask"
+          placeholder="0000 0000 0000 0000"
         />
       </div>
 
-      <div class="form__group">
+      <div class="form__group form__group--expiry">
         <label for="expiry">Card Expiry</label>
-        <input
-          type="text"
-          name="expiry"
-          v-model="card.expiry"
-          placeholder="01/25"
-        />
+        <select type="text" name="expiry" v-model="card.month">
+          <option value="" disabled selected>Month</option>
+          <option
+            v-bind:value="n < 10 ? '0' + n : n"
+            v-for="n in 12"
+            v-bind:disabled="n < minCardMonth"
+            v-bind:key="n"
+          >
+            {{ getMonth(n) }}
+          </option>
+        </select>
+        <select type="text" name="expiry" v-model="card.year">
+          <option value="" disabled selected>Year</option>
+          <option
+            v-bind:value="$index + minCardYear"
+            v-for="(n, $index) in 12"
+            v-bind:key="n"
+          >
+            {{ $index + minCardYear }}
+          </option>
+        </select>
       </div>
 
-      <div class="form__group">
-        <label for="security">Card Security Code</label>
+      <div class="form__group form__group--security">
+        <label for="security">Security Code</label>
         <input
           type="text"
           name="security"
@@ -46,12 +62,15 @@
           placeholder="456"
         />
       </div>
+
+      <div class="form__group">
+        <button class="button button--primary">Purchase</button>
+      </div>
     </form>
   </div>
 </template>
 
 <script>
-import $ from "jquery";
 import Card from "./Card";
 export default {
   components: {
@@ -63,117 +82,59 @@ export default {
       card: {
         name: "",
         number: "",
-        expiry: "",
+        month: "",
+        year: "",
         security: "",
       },
-      providers: [
-        {
-          brand: "American Express",
-          image: "/images/this.providers/american-express.png",
-          verification: "^3[47][0-9]",
-          separation: "^([0-9]{4})([0-9]{6})?(?:([0-9]{6})([0-9]{5}))?$",
-          hidden: "**** ****** *[0-9][0-9][0-9][0-9]",
-          accepted: true,
-          length: 15,
-        },
-        {
-          brand: "MasterCard",
-          image: "/images/this.providers/mastercard.png",
-          verification: "^5[1-5][0-9]",
-          separation: "^([0-9]{4})([0-9]{4})?([0-9]{4})?([0-9]{4})?$",
-          hidden: "**** **** **** [0-9][0-9][0-9][0-9]",
-          accepted: true,
-          length: 16,
-        },
-        {
-          brand: "Visa",
-          image: "/images/this.providers/visa.png",
-          verification: "^4[0-9]",
-          separation: "^([0-9]{4})([0-9]{4})?([0-9]{4})?([0-9]{4})?$",
-          hidden: "**** **** **** [0-9][0-9][0-9][0-9]",
-          accepted: true,
-          length: 16,
-        },
-        {
-          brand: "Discover",
-          image: "/images/this.providers/discover.png",
-          verification: "^6(?:011|5[0-9]{2})[0-9]",
-          separation: "^([0-9]{4})([0-9]{4})?([0-9]{4})?([0-9]{4})?$",
-          hidden: "**** **** **** [0-9][0-9][0-9][0-9]",
-          accepted: false,
-          length: 16,
-        },
-        {
-          brand: "Diners Club",
-          image: "/images/this.providers/diners-club-international.png",
-          verification: "^3(?:0[0-5]|[68][0-9])[0-9]",
-          separation:
-            "^([0-9]{4})([0-9]{4})?([0-9]{4})?(?:([0-9]{4})([0-9]{4})([0-9]{2}))?$",
-          hidden: "**** **** **[0-9][0-9] [0-9][0-9]",
-          accepted: false,
-          length: 14,
-        },
-        {
-          brand: "JCB",
-          image: "/images/this.providers/jcb.png",
-          verification: "^(?:2131|1800|35[0-9]{3})[0-9]",
-          separation: "^([0-9]{4})([0-9]{4})?([0-9]{4})?([0-9]{4})?$",
-          hidden: "**** **** **** [0-9][0-9][0-9][0-9]",
-          accepted: false,
-          length: 16,
-        },
-      ],
+      minCardYear: new Date().getFullYear(),
+      amexCardMask: "#### ###### #####",
+      otherCardMask: "#### #### #### ####",
       activeProvider: null,
       cardError: null,
     };
   },
   methods: {
-    handleCardInput() {
-      //Preset Data
-      var provider = this.card.number;
+    getMonth(n) {
+      return n < 10 ? "0" + n : n;
+    },
+  },
 
-      //Find the Credit Card
-      for (var i = 0; i < this.providers.length; i++) {
-        //Check the Type
-        if (provider.match(new RegExp(this.providers[i].verification))) {
-          //Set the Active Card
-          this.activeProvider = i;
+  computed: {
+    getCardType() {
+      let number = this.card.number;
+      let re = new RegExp("^4");
+      if (number.match(re) != null) return "visa";
 
-          //Add Credit Card Icon
+      re = new RegExp("^(34|37)");
+      if (number.match(re) != null) return "amex";
 
-          //If the Credit Card is NOT accepted, Show the Error
-          this.cardError = "Invalid Credit Card (Not accepted)";
+      re = new RegExp("^5[1-5]");
+      if (number.match(re) != null) return "mastercard";
 
-          //End the Loop
-          break;
-        }
+      re = new RegExp("^6011");
+      if (number.match(re) != null) return "discover";
+
+      re = new RegExp("^9792");
+      if (number.match(re) != null) return "troy";
+
+      return "visa"; // default type
+    },
+    generateCardNumberMask() {
+      return this.getCardType === "amex"
+        ? this.amexCardMask
+        : this.otherCardMask;
+    },
+    minCardMonth() {
+      if (this.card.year === this.minCardYear) return new Date().getMonth() + 1;
+      return 1;
+    },
+  },
+
+  watch: {
+    cardYear() {
+      if (this.cardMonth < this.minCardMonth) {
+        this.cardMonth = "";
       }
-
-      //Show Invalid Card
-      if (
-        this.activeProvider == null &&
-        provider.length > 4 &&
-        $(this).nextAll("small").length == 0
-      ) {
-        //Show Error
-        this.cardError = "Invalid Credit Card";
-      }
-
-      //Preset they Key
-      const key = this.activeProvider !== null ? this.activeProvider : 1;
-
-      //Limit the Length of the Card, Allow Keys
-      if (provider.length >= this.providers[key].length) {
-        return;
-      }
-
-      //Add a Space if the Regex Passes
-      if (new RegExp(this.providers[key].separation).exec(provider)) {
-        this.card.number = this.card.number + " ";
-      }
-
-      //Return
-      return;
     },
   },
 };

@@ -1,20 +1,23 @@
 <template>
   <div class="checkout">
-    <div class="header">
-      <h1>Checkout</h1>
+    <div class="info">
+      <span class="button button--small" @click="checkout()">Go Back</span>
+      <div class="header">
+        <h1>Checkout</h1>
+        <div class="total"><span>Subtotal</span>£{{ product.price }}</div>
+      </div>
+      <ul class="products">
+        <li class="product">
+          <div class="info">
+            <h2>{{ product.name }}</h2>
+            <p>{{ product.description }}</p>
+          </div>
+          <div class="price">
+            {{ product.price }}
+          </div>
+        </li>
+      </ul>
     </div>
-    <ul class="products">
-      <li class="product">
-        <div class="info">
-          <h2>{{ product.name }}</h2>
-          <p>{{ product.description }}</p>
-        </div>
-        <div class="price">
-          {{ product.price }}
-        </div>
-      </li>
-    </ul>
-    <div class="total"><span>Subtotal</span>£{{ product.price }}</div>
     <Payment />
   </div>
 </template>
@@ -30,7 +33,11 @@ export default {
   components: {
     Payment,
   },
-  methods: {},
+  methods: {
+    checkout(product) {
+      this.$store.commit("checkout", product);
+    },
+  },
 };
 </script>
 
@@ -50,17 +57,22 @@ export default {
     padding-bottom: 20px;
     margin-bottom: 20px;
     border-bottom: 2px solid #dee5ea;
+    display: flex;
+    align-items: center;
   }
-  .products {
-    width: 40%;
-    height: 90%;
+  .info {
+    width: 55%;
     overflow-x: hidden;
     overflow-y: scroll;
-    position: relative;
-    border-radius: 10px;
+    height: 90%;
     &::-webkit-scrollbar {
       display: none;
     }
+  }
+  .products {
+    width: 100%;
+    position: relative;
+    border-radius: 10px;
     .product {
       width: 100%;
       display: flex;
@@ -77,13 +89,9 @@ export default {
     }
   }
   .total {
-    position: absolute;
-    width: 40%;
+    margin-left: auto;
     text-align: right;
-    left: 0;
-    bottom: 0;
     background-color: #fff;
-    padding: 50px 0;
     font-size: 26px;
     font-weight: 700;
     span {
